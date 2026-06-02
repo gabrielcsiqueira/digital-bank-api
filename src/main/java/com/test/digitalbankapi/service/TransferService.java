@@ -5,6 +5,7 @@ import com.test.digitalbankapi.dto.response.TransferResponseDTO;
 import com.test.digitalbankapi.entity.Account;
 import com.test.digitalbankapi.entity.Transfer;
 import com.test.digitalbankapi.enums.TransferStatus;
+import com.test.digitalbankapi.event.TransferCreatedEvent;
 import com.test.digitalbankapi.exception.AccountNotFoundException;
 import com.test.digitalbankapi.exception.InsufficientBalanceException;
 import com.test.digitalbankapi.exception.InvalidTransferAmountException;
@@ -14,6 +15,7 @@ import com.test.digitalbankapi.repository.AccountRepository;
 import com.test.digitalbankapi.repository.TransferRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,13 +27,16 @@ public class TransferService {
     private final AccountRepository accountRepository;
     private final TransferRepository transferRepository;
     private final TransferMapper transferMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TransferService(AccountRepository accountRepository,
                            TransferRepository transferRepository,
-                           TransferMapper transferMapper) {
+                           TransferMapper transferMapper,
+                           ApplicationEventPublisher applicationEventPublisher) {
         this.accountRepository = accountRepository;
         this.transferRepository = transferRepository;
         this.transferMapper = transferMapper;
+        this.eventPublisher = applicationEventPublisher;
     }
 
     @Transactional
@@ -43,6 +48,13 @@ public class TransferService {
         executeMonetaryTransaction(accounts.source(), accounts.destination(), request.amount());
 
         Transfer savedTransfer = recordTransferHistory(accounts.source(), accounts.destination(), request.amount());
+
+        eventPublisher.publishEvent(new TransferCreatedEvent(
+                savedTransfer.getId(),
+                accounts.source().getId(),
+                accounts.destination().getId(),
+                request.amount()
+        ));
 
         return transferMapper.toResponseDTO(savedTransfer);
     }
