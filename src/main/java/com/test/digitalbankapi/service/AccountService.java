@@ -5,6 +5,7 @@ import com.test.digitalbankapi.dto.response.AccountResponseDTO;
 import com.test.digitalbankapi.entity.Account;
 import com.test.digitalbankapi.mapper.AccountMapper;
 import com.test.digitalbankapi.repository.AccountRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,7 +36,7 @@ public class AccountService {
     }
 
     public List<AccountResponseDTO> findAll() {
-        return accountRepository.findAll()
+        return accountRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
                 .stream()
                 .map(accountMapper::toResponseDTO)
                 .toList();
