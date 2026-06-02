@@ -4,6 +4,26 @@ API REST de transferências financeiras construída com Spring Boot 3, Java 17 e
 
 ---
 
+## Exemplo rápido
+
+Criar uma conta:
+
+```bash
+curl -X POST http://localhost:8080/api/accounts \
+  -H "Content-Type: application/json" \
+  -d '{"name": "João Silva", "balance": 1000.00}'
+```
+
+Transferir entre contas:
+
+```bash
+curl -X POST http://localhost:8080/api/transfers \
+  -H "Content-Type: application/json" \
+  -d '{"sourceAccountId": 1, "targetAccountId": 2, "amount": 250.00}'
+```
+
+---
+
 ## Rodando o projeto
 
 A aplicação sobe inteira via Docker — não é necessário ter Java, Maven ou PostgreSQL instalados.
@@ -29,6 +49,14 @@ mvn clean test
 ```
 
 > O build do Docker usa `-DskipTests` propositalmente — a ideia é não deixar variações de ambiente (porta ocupada, memória apertada no host) atrapalharem o setup inicial. Os testes rodam separadamente.
+
+A suite foi organizada seguindo a pirâmide de testes, do mais rápido e isolado ao mais completo:
+
+**Unitários** — JUnit 5 + Mockito cobrindo as regras de negócio dos services em isolamento: validação de saldo, fluxos de transferência, cálculo de taxas. Rodam sem banco, sem contexto Spring, feedback imediato.
+
+**Integração** — Testcontainers sobe um PostgreSQL real e temporário para cada execução. Isso valida as migrações do Flyway e as queries do Spring Data JPA no mesmo ambiente de produção, sem os atalhos que um H2 em memória permitiria passar despercebidos.
+
+**API** — `@SpringBootTest` + `MockMvc` cobrindo os controllers: status HTTP corretos, tratamento de exceções pelo `@RestControllerAdvice` e respeito ao context path configurado.
 
 ---
 
@@ -71,6 +99,19 @@ Após a transferência ser persistida, um `TransferCreatedEvent` é publicado vi
 ### Logs
 
 SLF4J em três níveis: `INFO` para o fluxo normal de negócio, `WARN` para violações de regra (saldo insuficiente, conta não encontrada) e `DEBUG` para os detalhes de aquisição e liberação de locks.
+
+---
+
+## Variáveis de ambiente
+
+Todas já vêm configuradas no `docker-compose.yml` para rodar localmente sem nenhum ajuste. Para customizar:
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `POSTGRES_DB` | `digitalbank` | Nome do banco de dados |
+| `POSTGRES_USER` | `postgres` | Usuário do banco |
+| `POSTGRES_PASSWORD` | `postgres` | Senha do banco |
+| `SERVER_PORT` | `8080` | Porta da API |
 
 ---
 
