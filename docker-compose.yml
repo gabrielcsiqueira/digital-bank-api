@@ -1,19 +1,38 @@
+version: '3.8'
+
 services:
-
-  postgres:
-    image: postgres:17
+  postgres-db:
+    image: postgres:17-alpine
     container_name: digitalbank-postgres
-
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: digitalbank
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-
-    ports:
-      - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d digitalbank"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: digitalbank-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/digitalbank
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      postgres-db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
