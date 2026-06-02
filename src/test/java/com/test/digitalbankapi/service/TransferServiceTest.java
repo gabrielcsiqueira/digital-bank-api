@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -40,6 +41,9 @@ class TransferServiceTest {
 
     @Mock
     private TransferMapper transferMapper;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private TransferService transferService;
@@ -101,6 +105,7 @@ class TransferServiceTest {
         assertEquals(TransferStatus.SUCCESS, transferCaptor.getValue().getStatus());
 
         verify(accountRepository, times(2)).findByIdForUpdate(anyLong());
+        verify(eventPublisher, times(1)).publishEvent(any(com.test.digitalbankapi.event.TransferCreatedEvent.class));
     }
 
     @Test
@@ -187,6 +192,8 @@ class TransferServiceTest {
 
         assertEquals(0, BigDecimal.ZERO.compareTo(sourceAccount.getBalance()));
         assertEquals(0, new BigDecimal("1500.00").compareTo(destinationAccount.getBalance()));
+
+        verify(eventPublisher, times(1)).publishEvent(any(com.test.digitalbankapi.event.TransferCreatedEvent.class));
     }
 
     @Test

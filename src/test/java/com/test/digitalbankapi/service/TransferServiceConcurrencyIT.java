@@ -3,6 +3,7 @@ package com.test.digitalbankapi.service;
 import com.test.digitalbankapi.dto.request.TransferRequestDTO;
 import com.test.digitalbankapi.entity.Account;
 import com.test.digitalbankapi.repository.AccountRepository;
+import com.test.digitalbankapi.repository.NotificationRepository;
 import com.test.digitalbankapi.repository.TransferRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,11 +42,15 @@ class TransferServiceConcurrencyIT {
     @Autowired
     private TransferRepository transferRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     private Long accountAId;
     private Long accountBId;
 
     @BeforeEach
     void setUp() {
+        notificationRepository.deleteAll();
         transferRepository.deleteAll();
         accountRepository.deleteAll();
 
