@@ -9,17 +9,24 @@ API REST de transferências financeiras construída com Spring Boot 3, Java 17 e
 Criar uma conta:
 
 ```bash
-curl -X POST http://localhost:8080/api/accounts \
-  -H "Content-Type: application/json" \
-  -d '{"name": "João Silva", "balance": 1000.00}'
+curl --location 'localhost:8080/api/accounts' \
+--header 'Content-Type: application/json' \
+--data '{
+  "ownerName": "Maria Rodrigues",
+  "initialBalance": 1000.00
+}'
 ```
 
-Transferir entre contas:
+Executar uma transferência bancária:
 
 ```bash
-curl -X POST http://localhost:8080/api/transfers \
-  -H "Content-Type: application/json" \
-  -d '{"sourceAccountId": 1, "targetAccountId": 2, "amount": 250.00}'
+curl --location 'http://localhost:8080/api/transfers' \
+--header 'Content-Type: application/json' \
+--data '{
+  "sourceAccountId": 1,
+  "destinationAccountId": 2,
+  "amount": 250.00
+}'
 ```
 
 ---
