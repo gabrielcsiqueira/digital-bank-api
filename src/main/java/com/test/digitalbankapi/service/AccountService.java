@@ -3,6 +3,7 @@ package com.test.digitalbankapi.service;
 import com.test.digitalbankapi.dto.request.AccountRequestDTO;
 import com.test.digitalbankapi.dto.response.AccountResponseDTO;
 import com.test.digitalbankapi.entity.Account;
+import com.test.digitalbankapi.mapper.AccountMapper;
 import com.test.digitalbankapi.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +14,11 @@ import java.util.List;
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final AccountMapper accountMapper;
 
-    public AccountService(AccountRepository accountRepository) {
+    public AccountService(AccountRepository accountRepository, AccountMapper accountMapper) {
         this.accountRepository = accountRepository;
+        this.accountMapper = accountMapper;
     }
 
     public AccountResponseDTO create(AccountRequestDTO request) {
@@ -28,17 +31,13 @@ public class AccountService {
 
         Account saved = accountRepository.save(account);
 
-        return new AccountResponseDTO(saved.getId(), saved.getOwnerName(), saved.getBalance());
+        return accountMapper.toResponseDTO(saved);
     }
 
     public List<AccountResponseDTO> findAll() {
         return accountRepository.findAll()
                 .stream()
-                .map(acc -> new AccountResponseDTO(
-                        acc.getId(),
-                        acc.getOwnerName(),
-                        acc.getBalance()
-                ))
+                .map(accountMapper::toResponseDTO)
                 .toList();
     }
 
